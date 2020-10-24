@@ -15,9 +15,7 @@
 import 'owl.carousel/dist/assets/owl.carousel.css';
 import 'owl.carousel/dist/assets/owl.theme.default.css';
 import 'owl.carousel';
-
 import events from './utils/events';
-
 export default {
   name: 'VOwlCarousel',
   props: {
@@ -217,20 +215,29 @@ export default {
       type: Boolean,
       default: true,
     },
+    goTo: {
+      type: Number,
+      required: false,
+      default: 0
+    }
   },
   data: function() {
     return {
       showPrev: false,
       showNext: true,
-
       prevHandler: 'carousel_prev_' + this.generateUniqueId(),
       elementHandle: 'carousel_' + this.generateUniqueId(),
       nextHandler: 'carousel_next_' + this.generateUniqueId(),
+      owl: null
     };
   },
-
+  watch: {
+    goTo(v) {
+      this.owl.trigger('to.owl.carousel', [v, 500]);
+    }
+  },
   mounted: function() {
-    const owl = $('#' + this.elementHandle).owlCarousel({
+    this.owl = $('#' + this.elementHandle).owlCarousel({
       items: this.items,
       margin: this.margin,
       loop: this.loop,
@@ -281,23 +288,20 @@ export default {
       dotsContainer: this.dotsContainer,
       checkVisible: this.checkVisible,
     });
-
+    const vm = this;
     $('#' + this.prevHandler).click(function() {
-      owl.trigger('prev.owl.carousel');
+      vm.owl.trigger('prev.owl.carousel');
     });
-
     $('#' + this.nextHandler).click(function() {
-      owl.trigger('next.owl.carousel');
+      vm.owl.trigger('next.owl.carousel');
     });
-
     events.forEach((eventName) => {
-      owl.on(`${eventName}.owl.carousel`, (event) => {
-        this.$emit(eventName, event);
+      vm.owl.on(`${eventName}.owl.carousel`, (event) => {
+        vm.this.$emit(eventName, event);
       });
     });
-
     if (!this.loop) {
-      owl.on('changed.owl.carousel', (event) => {
+      this.owl.on('changed.owl.carousel', (event) => {
         // start
         if (event.item.index === 0) {
           this.showPrev = false;
